@@ -79,6 +79,7 @@ func ListImage(imageName string, imageFilter string, secretName string, namespac
 	} else {
 		filteredTags = tags
 	}
+	fmt.Println("limt", limit)
 	// Sort tags in descending order
 	sort.Sort(sort.Reverse(sort.StringSlice(filteredTags)))
 	if limit > 0 && limit < len(filteredTags) {

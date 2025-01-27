@@ -60,7 +60,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&imageFilter, "filter", "f", ".*", "Filter to apply to image name")
 	rootCmd.PersistentFlags().StringVarP(&secretName, "secret", "s", "", "Secret name to search for")
 	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "default", "Namespace to search for")
-	rootCmd.PersistentFlags().IntP("limit", "l", 10, "Limit the number of results")
+	rootCmd.PersistentFlags().IntVarP(&limit, "limit", "l", 5, "Limit the number of results")
 	rootCmd.MarkPersistentFlagRequired("image")
 	rootCmd.MarkPersistentFlagRequired("secret")
 }
