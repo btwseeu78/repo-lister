@@ -7,6 +7,14 @@ go run main.go -i linuxarpan/testpush -s regcred -l 2
 
 ## Requirements
 
--  Connectivity to lcuster
+- Connectivity to cluster
 - kubeconfig
 - Access to get secret
+
+## Flags
+```sh
+    --imageName (string): Name of the image.
+    --imageFilter (string): Filter for the image.
+    --secretName (string): Name of the secret.
+    --limit (int): Limit for the number of results.
+```
