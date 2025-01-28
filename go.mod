@@ -3,6 +3,7 @@ module repo-lister
 go 1.23.1
 
 require (
+	github.com/blang/semver v3.5.1+incompatible
 	github.com/google/go-containerregistry v0.20.3
 	github.com/google/go-containerregistry/pkg/authn/k8schain v0.0.0-20250115185438-c4dd792fa06c
 	github.com/spf13/cobra v1.8.1

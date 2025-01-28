@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"sort"
 
+	"github.com/blang/semver"
 	"github.com/google/go-containerregistry/pkg/authn/k8schain"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
@@ -79,12 +80,27 @@ func ListImage(imageName string, imageFilter string, secretName string, namespac
 	} else {
 		filteredTags = tags
 	}
-	fmt.Println("limt", limit)
-	// Sort tags in descending order
-	sort.Sort(sort.Reverse(sort.StringSlice(filteredTags)))
-	if limit > 0 && limit < len(filteredTags) {
-		filteredTags = filteredTags[:limit]
+
+	var semverTags []semver.Version
+	for _, tag := range filteredTags {
+		v, err := semver.ParseTolerant(tag)
+		if err == nil {
+			semverTags = append(semverTags, v)
+		}
 	}
-	return filteredTags, nil
+
+	sort.Slice(semverTags, func(i, j int) bool {
+		return semverTags[i].GT(semverTags[j])
+	})
+
+	// Convert sorted semver tags back to string
+	sortedTags := make([]string, len(semverTags))
+	for i, v := range semverTags {
+		sortedTags[i] = v.String()
+	}
+	if limit > 0 && limit < len(sortedTags) {
+		sortedTags = sortedTags[:limit]
+	}
+	return sortedTags, nil
 
 }
