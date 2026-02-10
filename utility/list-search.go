@@ -10,6 +10,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 )
 
+// ListImage lists tags from a container registry, with optional filtering and sorting by semver.
 func ListImage(imageName string, imageFilter string, secretName string, namespace string, limit int) ([]string, error) {
 
 	// Create keychain using shared authentication
