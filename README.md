@@ -11,33 +11,35 @@ A CLI tool to manage container images across registries using Kubernetes credent
 
 All commands use Kubernetes secrets for registry authentication, making it easy to work with private registries in your cluster.
 
+## Security
+
+🔒 **All releases are cryptographically signed** using [cosign](https://github.com/sigstore/cosign) with keyless signing (Sigstore). See [SECURITY.md](SECURITY.md) for verification instructions.
+
 ## Installation
 
-### Homebrew (Linux)
+### Homebrew (macOS & Linux)
 
 ```sh
-# Add the tap
-brew tap your-github-username/tap
-
-# Install repo-lister
-brew install repo-lister
-
-# Verify installation
-repo-lister --help
+brew install --cask btwseeu78/repo-lister/repo-lister
 ```
 
 ### Download Pre-built Binary
 
-Download the latest release for your platform from the [releases page](https://github.com/your-github-username/repo-lister/releases).
+Download the latest release for your platform from the [releases page](https://github.com/btwseeu78/repo-lister/releases).
 
 ```sh
+# macOS (Apple Silicon)
+curl -LO https://github.com/btwseeu78/repo-lister/releases/latest/download/repo-lister_<version>_darwin_arm64.tar.gz
+tar -xzf repo-lister_<version>_darwin_arm64.tar.gz
+sudo mv repo-lister /usr/local/bin/
+
 # Linux (amd64)
-wget https://github.com/your-github-username/repo-lister/releases/latest/download/repo-lister_<version>_linux_x86_64.tar.gz
+curl -LO https://github.com/btwseeu78/repo-lister/releases/latest/download/repo-lister_<version>_linux_x86_64.tar.gz
 tar -xzf repo-lister_<version>_linux_x86_64.tar.gz
 sudo mv repo-lister /usr/local/bin/
 
 # Linux (arm64)
-wget https://github.com/your-github-username/repo-lister/releases/latest/download/repo-lister_<version>_linux_arm64.tar.gz
+curl -LO https://github.com/btwseeu78/repo-lister/releases/latest/download/repo-lister_<version>_linux_arm64.tar.gz
 tar -xzf repo-lister_<version>_linux_arm64.tar.gz
 sudo mv repo-lister /usr/local/bin/
 ```
@@ -46,13 +48,13 @@ sudo mv repo-lister /usr/local/bin/
 
 **Debian/Ubuntu:**
 ```sh
-wget https://github.com/your-github-username/repo-lister/releases/latest/download/repo-lister_<version>_amd64.deb
+curl -LO https://github.com/btwseeu78/repo-lister/releases/latest/download/repo-lister_<version>_amd64.deb
 sudo dpkg -i repo-lister_<version>_amd64.deb
 ```
 
 **RHEL/CentOS/Fedora:**
 ```sh
-wget https://github.com/your-github-username/repo-lister/releases/latest/download/repo-lister_<version>_x86_64.rpm
+curl -LO https://github.com/btwseeu78/repo-lister/releases/latest/download/repo-lister_<version>_x86_64.rpm
 sudo rpm -i repo-lister_<version>_x86_64.rpm
 ```
 
