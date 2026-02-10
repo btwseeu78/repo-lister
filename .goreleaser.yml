@@ -14,12 +14,16 @@ builds:
       - CGO_ENABLED=0
     goos:
       - linux
+      - darwin
     goarch:
       - amd64
       - arm64
       - arm
     goarm:
       - "7"
+    ignore:
+      - goos: darwin
+        goarch: arm
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
@@ -94,6 +98,20 @@ release:
     ```bash
     curl -LO {{ .ReleaseURL }}/repo-lister_{{ .Version }}_linux_arm64.tar.gz
     tar -xzf repo-lister_{{ .Version }}_linux_arm64.tar.gz
+    sudo mv repo-lister /usr/local/bin/
+    ```
+
+    #### macOS (Apple Silicon)
+    ```bash
+    curl -LO {{ .ReleaseURL }}/repo-lister_{{ .Version }}_darwin_arm64.tar.gz
+    tar -xzf repo-lister_{{ .Version }}_darwin_arm64.tar.gz
+    sudo mv repo-lister /usr/local/bin/
+    ```
+
+    #### macOS (Intel)
+    ```bash
+    curl -LO {{ .ReleaseURL }}/repo-lister_{{ .Version }}_darwin_x86_64.tar.gz
+    tar -xzf repo-lister_{{ .Version }}_darwin_x86_64.tar.gz
     sudo mv repo-lister /usr/local/bin/
     ```
 
