@@ -23,5 +23,10 @@ go.work.sum
 
 # env file
 .env
+
+# Homebrew formula/cask templates
 Formula/
-Formula/
+
+# Build artifacts
+dist/
+repo-lister
