@@ -141,4 +141,3 @@ homebrew_casks:
     directory: Casks
     homepage: "https://github.com/btwseeu78/repo-lister"
     description: Container image management tool using Kubernetes credentials
-    skip_upload: auto
