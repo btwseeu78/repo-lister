@@ -118,8 +118,7 @@ homebrew_casks:
       - repo-lister
     repository:
       owner: btwseeu78
-      name: homebrew-tap
-      token: "{{ .Env.GITHUB_TOKEN }}"
+      name: repo-lister
     directory: Casks
     homepage: "https://github.com/btwseeu78/repo-lister"
     description: Container image management tool using Kubernetes credentials
