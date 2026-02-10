@@ -4,42 +4,43 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
 	"os"
-	"repo-lister/utility"
 
 	"github.com/spf13/cobra"
 )
 
-var imageName, imageFilter, secretName, namespace string
-var limit int
+var appVersion, appCommit, appDate string
+
+// SetVersionInfo sets the version info from main (populated by ldflags)
+func SetVersionInfo(version, commit, date string) {
+	appVersion = version
+	appCommit = commit
+	appDate = date
+}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "repo-lister",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Use:     "repo-lister",
+	Short:   "A CLI tool to manage container images using Kubernetes credentials",
+	Version: "dev",
+	Long: `repo-lister is a CLI tool that helps you manage container images across registries
+using Kubernetes credentials for authentication.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		// Call the ListImage function from the utility package
-		// and print the result
-		tags, err := utility.ListImage(imageName, imageFilter, secretName, namespace, limit)
-		if err != nil {
-			os.Exit(1)
-		}
-		for _, tag := range tags {
-			cmd.Println(tag)
-		}
+Features:
+  - list:  List image tags from a registry
+  - copy:  Copy/retag images between registries
+  - pull:  Pull images from registry to local storage
+  - push:  Push images from local storage to registry
 
-	},
+All commands use Kubernetes secrets for registry authentication, making it easy
+to work with private registries in your cluster.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	rootCmd.Version = fmt.Sprintf("%s (commit: %s, built: %s)", appVersion, appCommit, appDate)
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
@@ -47,20 +48,4 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.repo-lister.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	rootCmd.PersistentFlags().StringVarP(&imageName, "image", "i", "", "Image name to search for")
-	rootCmd.PersistentFlags().StringVarP(&imageFilter, "filter", "f", ".*", "Filter to apply to image name")
-	rootCmd.PersistentFlags().StringVarP(&secretName, "secret", "s", "", "Secret name to search for")
-	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "default", "Namespace to search for")
-	rootCmd.PersistentFlags().IntVarP(&limit, "limit", "l", 5, "Limit the number of results")
-	rootCmd.MarkPersistentFlagRequired("image")
-	rootCmd.MarkPersistentFlagRequired("secret")
 }

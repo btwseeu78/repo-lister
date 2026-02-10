@@ -1,0 +1,126 @@
+# GoReleaser configuration for repo-lister
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+    - go mod verify
+
+builds:
+  - id: repo-lister
+    main: ./main.go
+    binary: repo-lister
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - "7"
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.ShortCommit}}
+      - -X main.date={{.Date}}
+    flags:
+      - -trimpath
+
+archives:
+  - id: repo-lister
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+  groups:
+    - title: 'Features'
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: 'Bug fixes'
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: 'Enhancements'
+      regexp: "^.*enhance[(\\w)]*:+.*$"
+      order: 2
+    - title: 'Others'
+      order: 999
+
+release:
+  draft: false
+  prerelease: auto
+  name_template: "Release {{.Version}}"
+  header: |
+    ## repo-lister {{.Version}}
+
+    Container image management tool using Kubernetes credentials.
+
+    ### Installation
+
+    #### Linux (amd64)
+    ```bash
+    curl -LO {{ .ReleaseURL }}/repo-lister_{{ .Version }}_linux_x86_64.tar.gz
+    tar -xzf repo-lister_{{ .Version }}_linux_x86_64.tar.gz
+    sudo mv repo-lister /usr/local/bin/
+    ```
+
+    #### Linux (arm64)
+    ```bash
+    curl -LO {{ .ReleaseURL }}/repo-lister_{{ .Version }}_linux_arm64.tar.gz
+    tar -xzf repo-lister_{{ .Version }}_linux_arm64.tar.gz
+    sudo mv repo-lister /usr/local/bin/
+    ```
+
+  footer: |
+    **Full Changelog**: https://github.com/btwseeu78/repo-lister/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+nfpms:
+  - id: repo-lister
+    package_name: repo-lister
+    vendor: repo-lister
+    maintainer: "repo-lister contributors"
+    description: Container image management tool using Kubernetes credentials
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/local/bin
+
+homebrew_casks:
+  - name: repo-lister
+    binaries:
+      - repo-lister
+    repository:
+      owner: btwseeu78
+      name: homebrew-tap
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    directory: Casks
+    homepage: "https://github.com/btwseeu78/repo-lister"
+    description: Container image management tool using Kubernetes credentials
+    skip_upload: auto

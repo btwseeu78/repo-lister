@@ -1,48 +1,21 @@
 package utility
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"sort"
 
 	"github.com/blang/semver"
-	"github.com/google/go-containerregistry/pkg/authn/k8schain"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 func ListImage(imageName string, imageFilter string, secretName string, namespace string, limit int) ([]string, error) {
 
-	// Create KeycHain to be used with docker
-	// Create a Kubernetes client
-	var config *rest.Config
-	config, err := rest.InClusterConfig()
+	// Create keychain using shared authentication
+	kc, err := CreateKeychain(namespace, secretName)
 	if err != nil {
-		kubeconfig := clientcmd.NewDefaultClientConfigLoadingRules().GetDefaultFilename()
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-		if err != nil {
-			fmt.Println("Error creating Kubernetes client config:", err)
-			return nil, err
-		}
-	}
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		fmt.Println("Error creating Kubernetes client:", err)
-		return nil, err
-	}
-
-	// Create a Kubernetes keychain using the specific secret
-	ctx := context.Background()
-	kc, err := k8schain.New(ctx, clientset, k8schain.Options{
-		Namespace:        namespace, // Change this to the namespace where your secret is located
-		ImagePullSecrets: []string{secretName},
-	})
-	if err != nil {
-		fmt.Println("Error creating Kubernetes keychain:", err)
+		fmt.Println("Error creating keychain:", err)
 		return nil, err
 	}
 
