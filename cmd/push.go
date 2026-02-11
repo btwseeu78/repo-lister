@@ -61,7 +61,7 @@ func init() {
 	pushCmd.Flags().StringVarP(&pushNamespace, "namespace", "n", "default", "Kubernetes namespace where the secret is located")
 
 	// Mark required flags
-	pushCmd.MarkFlagRequired("image")
-	pushCmd.MarkFlagRequired("source")
-	pushCmd.MarkFlagRequired("secret")
+	_ = pushCmd.MarkFlagRequired("image")
+	_ = pushCmd.MarkFlagRequired("source")
+	_ = pushCmd.MarkFlagRequired("secret")
 }

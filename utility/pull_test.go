@@ -69,7 +69,7 @@ func TestPullImageValidation(t *testing.T) {
 
 			// Clean up any created files
 			if tt.outputPath != "" {
-				os.Remove(tt.outputPath)
+				_ = os.Remove(tt.outputPath)
 			}
 		})
 	}
@@ -100,7 +100,9 @@ func TestPullImageOutputPath(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.prepareDir {
-				os.MkdirAll(filepath.Dir(tt.outputPath), 0755)
+				if err := os.MkdirAll(filepath.Dir(tt.outputPath), 0755); err != nil {
+					t.Fatalf("Failed to create directory: %v", err)
+				}
 			}
 
 			err := PullImage("nginx:latest", tt.outputPath, "test-secret", "default")
@@ -114,7 +116,7 @@ func TestPullImageOutputPath(t *testing.T) {
 			}
 
 			// Clean up
-			os.Remove(tt.outputPath)
+			_ = os.Remove(tt.outputPath)
 		})
 	}
 }

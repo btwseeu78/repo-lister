@@ -95,6 +95,6 @@ func init() {
 	copyCmd.Flags().BoolVarP(&copyShowProgress, "progress", "p", false, "Show progress during copy operation")
 
 	// Mark required flags
-	copyCmd.MarkFlagRequired("source")
-	copyCmd.MarkFlagRequired("destination")
+	_ = copyCmd.MarkFlagRequired("source")
+	_ = copyCmd.MarkFlagRequired("destination")
 }

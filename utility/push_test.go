@@ -70,14 +70,18 @@ func TestPushImageValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a dummy tar file if needed
 			if tt.createFile && tt.sourcePath != "" {
-				os.MkdirAll(filepath.Dir(tt.sourcePath), 0755)
+				if err := os.MkdirAll(filepath.Dir(tt.sourcePath), 0755); err != nil {
+					t.Fatalf("Failed to create directory: %v", err)
+				}
 				f, err := os.Create(tt.sourcePath)
 				if err != nil {
 					t.Fatalf("Failed to create test file: %v", err)
 				}
-				f.WriteString("dummy tar content")
-				f.Close()
-				defer os.Remove(tt.sourcePath)
+				if _, err := f.WriteString("dummy tar content"); err != nil {
+					t.Fatalf("Failed to write test file: %v", err)
+				}
+				_ = f.Close()
+				defer func() { _ = os.Remove(tt.sourcePath) }()
 			}
 
 			err := PushImage(tt.imageRef, tt.sourcePath, tt.secretName, tt.namespace)
@@ -137,7 +141,7 @@ func TestPushImageSourceFile(t *testing.T) {
 				if err := tt.setupFile(sourcePath); err != nil {
 					t.Fatalf("Failed to setup test file: %v", err)
 				}
-				defer os.Remove(sourcePath)
+				defer func() { _ = os.Remove(sourcePath) }()
 			}
 
 			err := PushImage("nginx:test", sourcePath, "test-secret", "default")

@@ -51,5 +51,5 @@ func init() {
 	listCmd.Flags().IntVarP(&listLimit, "limit", "l", 5, "Maximum number of tags to return")
 
 	// Mark required flags
-	listCmd.MarkFlagRequired("image")
+	_ = listCmd.MarkFlagRequired("image")
 }
