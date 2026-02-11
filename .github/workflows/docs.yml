@@ -1,174 +1,29 @@
 name: Documentation
-
 on:
   push:
     branches:
       - master
       - main
-
 permissions:
   contents: read
   pages: write
   id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
-  docs:
-    runs-on: ubuntu-latest
+  deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/configure-pages@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
         with:
-          go-version: '1.25'
-
-      - name: Install gomarkdoc
-        run: go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
-
-      - name: Generate documentation
-        run: |
-          mkdir -p _docs
-
-          # Generate main index page
-          cat > _docs/index.html << 'HEADER'
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>repo-lister - API Documentation</title>
-            <style>
-              :root { --bg: #ffffff; --fg: #1a1a2e; --accent: #0066cc; --code-bg: #f4f4f8; --border: #e0e0e0; --card-bg: #fafafa; }
-              @media (prefers-color-scheme: dark) {
-                :root { --bg: #1a1a2e; --fg: #e0e0e0; --accent: #64b5f6; --code-bg: #16213e; --border: #2a2a4a; --card-bg: #16213e; }
-              }
-              * { margin: 0; padding: 0; box-sizing: border-box; }
-              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
-              .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
-              h1 { font-size: 2rem; margin-bottom: 0.5rem; }
-              .subtitle { color: var(--accent); margin-bottom: 2rem; font-size: 1.1rem; }
-              h2 { font-size: 1.4rem; margin: 2rem 0 1rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
-              .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem; margin-bottom: 1rem; }
-              .card h3 { margin-bottom: 0.5rem; }
-              .card a { color: var(--accent); text-decoration: none; font-weight: 600; }
-              .card a:hover { text-decoration: underline; }
-              .card p { font-size: 0.95rem; }
-              pre { background: var(--code-bg); padding: 1rem; border-radius: 6px; overflow-x: auto; margin: 1rem 0; border: 1px solid var(--border); }
-              code { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.9rem; }
-              .badge { display: inline-block; background: var(--accent); color: white; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; margin-right: 0.5rem; }
-              footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.85rem; color: #888; }
-            </style>
-          </head>
-          <body>
-          <div class="container">
-            <h1>repo-lister</h1>
-            <p class="subtitle">Container image management tool using Kubernetes credentials</p>
-
-            <h2>Overview</h2>
-            <p>repo-lister is a CLI tool for managing container images across registries using Kubernetes secrets for authentication.</p>
-            <pre><code># List image tags
-          repo-lister list -i nginx -s my-secret -n default
-
-          # Copy image between registries
-          repo-lister copy -s source:tag -d dest:tag --source-secret s1 --dest-secret s2
-
-          # Pull image to local tar
-          repo-lister pull -i nginx:latest -o image.tar -s my-secret
-
-          # Push local tar to registry
-          repo-lister push -i registry/image:tag -f image.tar -s my-secret</code></pre>
-
-            <h2>Packages</h2>
-            <div class="card">
-              <h3><span class="badge">cmd</span> <a href="cmd.html">cmd</a></h3>
-              <p>CLI command definitions using Cobra - root, list, copy, pull, push subcommands.</p>
-            </div>
-            <div class="card">
-              <h3><span class="badge">utility</span> <a href="utility.html">utility</a></h3>
-              <p>Core business logic - authentication, image listing, copying, pulling, and pushing.</p>
-            </div>
-
-            <h2>Installation</h2>
-            <pre><code># Homebrew
-          brew install --cask btwseeu78/repo-lister/repo-lister
-
-          # From source
-          go install github.com/btwseeu78/repo-lister@latest</code></pre>
-
-            <footer>
-              <p>Generated automatically from source code. <a href="https://github.com/btwseeu78/repo-lister">View on GitHub</a></p>
-            </footer>
-          </div>
-          </body>
-          </html>
-          HEADER
-
-          # Generate markdown for each package
-          gomarkdoc --output _docs/utility.md ./utility/
-          gomarkdoc --output _docs/cmd.md ./cmd/
-
-          # Convert markdown to HTML pages
-          for pkg in utility cmd; do
-            cat > "_docs/${pkg}.html" << HTMLHEAD
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>repo-lister - ${pkg}</title>
-            <style>
-              :root { --bg: #ffffff; --fg: #1a1a2e; --accent: #0066cc; --code-bg: #f4f4f8; --border: #e0e0e0; }
-              @media (prefers-color-scheme: dark) {
-                :root { --bg: #1a1a2e; --fg: #e0e0e0; --accent: #64b5f6; --code-bg: #16213e; --border: #2a2a4a; }
-              }
-              * { margin: 0; padding: 0; box-sizing: border-box; }
-              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
-              .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
-              a { color: var(--accent); }
-              h1, h2, h3, h4 { margin: 1.5rem 0 0.5rem; }
-              h1 { border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
-              pre { background: var(--code-bg); padding: 1rem; border-radius: 6px; overflow-x: auto; margin: 1rem 0; border: 1px solid var(--border); }
-              code { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.9rem; }
-              p { margin: 0.5rem 0; }
-              .nav { margin-bottom: 2rem; }
-              footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.85rem; color: #888; }
-            </style>
-            <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-          </head>
-          <body>
-          <div class="container">
-            <div class="nav"><a href="index.html">&larr; Back to index</a></div>
-            <div id="content"></div>
-            <footer>
-              <p>Generated automatically from source code. <a href="https://github.com/btwseeu78/repo-lister">View on GitHub</a></p>
-            </footer>
-          </div>
-          <script>
-            fetch('${pkg}.md')
-              .then(r => r.text())
-              .then(md => { document.getElementById('content').innerHTML = marked.parse(md); });
-          </script>
-          </body>
-          </html>
-          HTMLHEAD
-          done
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+          python-version: 3.x
+      - run: pip install zensical
+      - run: zensical build --clean 
+      - uses: actions/upload-pages-artifact@v4
         with:
-          path: _docs
-
-      - name: Deploy to GitHub Pages
+          path: site
+      - uses: actions/deploy-pages@v4
         id: deployment
-        uses: actions/deploy-pages@v4
