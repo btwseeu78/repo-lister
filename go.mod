@@ -1,6 +1,6 @@
 module repo-lister
 
-go 1.25.1
+go 1.24
 
 require (
 	github.com/blang/semver v3.5.1+incompatible
