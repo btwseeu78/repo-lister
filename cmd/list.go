@@ -19,8 +19,11 @@ var listCmd = &cobra.Command{
 This command uses Kubernetes secrets to authenticate with container registries
 and lists available tags for the specified image. Results can be filtered using
 regex patterns and limited to a specific number of results.`,
-	Example: `  # List tags for an image
-  repo-lister list --image linuxarpan/testpush --secret regcred --namespace default --limit 5
+	Example: `  # List tags from a public registry (no secret needed)
+  repo-lister list --image linuxarpan/testpush --limit 5
+
+  # List tags from a private registry with secret
+  repo-lister list --image myregistry.io/app --secret registry-cred --namespace default --limit 5
 
   # List tags with a filter
   repo-lister list --image myregistry.io/app --secret registry-cred --filter "v[0-9]+.*"`,
@@ -43,11 +46,10 @@ func init() {
 	// Define flags for the list command
 	listCmd.Flags().StringVarP(&listImageName, "image", "i", "", "Image name to list tags for (required)")
 	listCmd.Flags().StringVarP(&listImageFilter, "filter", "f", ".*", "Regex filter to apply to image tags")
-	listCmd.Flags().StringVarP(&listSecretName, "secret", "s", "", "Kubernetes secret name for registry authentication (required)")
+	listCmd.Flags().StringVarP(&listSecretName, "secret", "s", "", "Kubernetes secret name for registry authentication (optional for public registries)")
 	listCmd.Flags().StringVarP(&listNamespace, "namespace", "n", "default", "Kubernetes namespace where the secret is located")
 	listCmd.Flags().IntVarP(&listLimit, "limit", "l", 5, "Maximum number of tags to return")
 
 	// Mark required flags
 	listCmd.MarkFlagRequired("image")
-	listCmd.MarkFlagRequired("secret")
 }

@@ -30,7 +30,13 @@ This command streams the image directly from source to destination, supporting:
   - Multi-architecture images (image indexes)
 
 The copy operation is efficient as it doesn't require local disk storage for the image.`,
-	Example: `  # Copy image with different tag in same registry
+	Example: `  # Copy from public source to private destination
+  repo-lister copy \
+    --source docker.io/library/nginx:latest \
+    --destination myregistry.io/nginx:latest \
+    --dest-secret regcred
+
+  # Copy image with different tag in same registry
   repo-lister copy \
     --source myregistry.io/app:v1.0.0 \
     --destination myregistry.io/app:v2.0.0 \
@@ -82,8 +88,8 @@ func init() {
 	// Define flags for the copy command
 	copyCmd.Flags().StringVarP(&copySource, "source", "s", "", "Source image reference (e.g., registry.io/image:tag) (required)")
 	copyCmd.Flags().StringVarP(&copyDestination, "destination", "d", "", "Destination image reference (e.g., registry.io/image:newtag) (required)")
-	copyCmd.Flags().StringVar(&copySourceSecret, "source-secret", "", "Kubernetes secret name for source registry authentication (required)")
-	copyCmd.Flags().StringVar(&copyDestSecret, "dest-secret", "", "Kubernetes secret name for destination registry authentication (required)")
+	copyCmd.Flags().StringVar(&copySourceSecret, "source-secret", "", "Kubernetes secret name for source registry authentication (optional for public registries)")
+	copyCmd.Flags().StringVar(&copyDestSecret, "dest-secret", "", "Kubernetes secret name for destination registry authentication (optional for public registries)")
 	copyCmd.Flags().StringVar(&copySourceNamespace, "source-namespace", "default", "Kubernetes namespace for source secret")
 	copyCmd.Flags().StringVar(&copyDestNamespace, "dest-namespace", "default", "Kubernetes namespace for destination secret")
 	copyCmd.Flags().BoolVarP(&copyShowProgress, "progress", "p", false, "Show progress during copy operation")
@@ -91,6 +97,4 @@ func init() {
 	// Mark required flags
 	copyCmd.MarkFlagRequired("source")
 	copyCmd.MarkFlagRequired("destination")
-	copyCmd.MarkFlagRequired("source-secret")
-	copyCmd.MarkFlagRequired("dest-secret")
 }

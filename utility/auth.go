@@ -36,9 +36,15 @@ func CreateK8sClient() (*kubernetes.Clientset, error) {
 	return clientset, nil
 }
 
-// CreateKeychain creates a k8schain keychain for the given namespace and secret
-// This keychain can be used to authenticate with container registries using k8s secrets
+// CreateKeychain creates a keychain for registry authentication.
+// If secretName is empty, it returns the default anonymous keychain for public registries.
+// Otherwise, it uses k8schain with the specified Kubernetes secret.
 func CreateKeychain(namespace, secretName string) (authn.Keychain, error) {
+	// If no secret is provided, use anonymous/default keychain (public registry)
+	if secretName == "" {
+		return authn.DefaultKeychain, nil
+	}
+
 	clientset, err := CreateK8sClient()
 	if err != nil {
 		return nil, err
