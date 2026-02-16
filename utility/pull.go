@@ -27,7 +27,7 @@ func PullImage(imageRef string, outputPath string, secretName string, namespace 
 	// Fetch the image from registry
 	img, err := remote.Image(ref, remote.WithAuthFromKeychain(kc))
 	if err != nil {
-		return fmt.Errorf("failed to fetch image from registry: %w", err)
+		return handleRegistryError(err, imageRef)
 	}
 
 	fmt.Printf("Saving image to %s...\n", outputPath)

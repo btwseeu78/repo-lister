@@ -64,5 +64,4 @@ func init() {
 	// Mark required flags
 	_ = pullCmd.MarkFlagRequired("image")
 	_ = pullCmd.MarkFlagRequired("output")
-	_ = pullCmd.MarkFlagRequired("secret")
 }
