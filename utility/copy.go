@@ -62,7 +62,7 @@ func CopyImage(
 
 	desc, err := remote.Get(srcRef, remote.WithAuthFromKeychain(sourceKC))
 	if err != nil {
-		return fmt.Errorf("failed to fetch image from source: %w", err)
+		return HandleRegistryError(err, "fetching image from source", sourceImage)
 	}
 
 	// Check if it's an image index (multi-arch) or regular image
@@ -92,7 +92,7 @@ func CopyImage(
 		}
 
 		if err != nil {
-			return fmt.Errorf("failed to write image to destination: %w", err)
+			return HandleRegistryError(err, "writing image to destination", destImage)
 		}
 	} else {
 		// Try as image index (multi-arch)
@@ -111,7 +111,7 @@ func CopyImage(
 		}
 
 		if err != nil {
-			return fmt.Errorf("failed to write image index to destination: %w", err)
+			return HandleRegistryError(err, "writing image index to destination", destImage)
 		}
 	}
 

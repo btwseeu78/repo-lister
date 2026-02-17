@@ -35,7 +35,7 @@ func PushImage(imageRef string, sourcePath string, secretName string, namespace 
 	// Push image to registry
 	err = remote.Write(ref, img, remote.WithAuthFromKeychain(kc))
 	if err != nil {
-		return fmt.Errorf("failed to push image to registry: %w", err)
+		return HandleRegistryError(err, "pushing image to", imageRef)
 	}
 
 	fmt.Printf("✓ Successfully pushed image to %s\n", imageRef)

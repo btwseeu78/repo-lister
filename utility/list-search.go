@@ -23,34 +23,6 @@ func normalizeImageName(imageName string) string {
 	return "docker.io/" + imageName
 }
 
-// handleRegistryError interprets registry errors and returns user-friendly messages
-func handleRegistryError(err error, repoName string) error {
-	if err == nil {
-		return nil
-	}
-	msg := err.Error()
-
-	switch {
-	case strings.Contains(strings.ToLower(msg), "unauthorized") ||
-		strings.Contains(strings.ToLower(msg), "authentication required") ||
-		strings.Contains(strings.ToLower(msg), "denied"):
-		return fmt.Errorf("authentication failed for repository '%s'. Please check your credentials or Kubernetes secret (try using -s \"my-docker-secret\"). Error: %v", repoName, err)
-
-	case strings.Contains(strings.ToLower(msg), "name_unknown") ||
-		strings.Contains(strings.ToLower(msg), "manifest unknown") ||
-		strings.Contains(msg, "404"):
-		return fmt.Errorf("repository '%s' not found. Please check the image name. Error: %v", repoName, err)
-
-	case strings.Contains(strings.ToLower(msg), "dial tcp") ||
-		strings.Contains(strings.ToLower(msg), "no such host") ||
-		strings.Contains(strings.ToLower(msg), "connection refused"):
-		return fmt.Errorf("registry unreachable for '%s'. Please check your network connection or registry URL. Error: %v", repoName, err)
-
-	default:
-		return fmt.Errorf("error listing tags for '%s': %w", repoName, err)
-	}
-}
-
 // ListImage lists tags from a container registry, with optional filtering and sorting by semver.
 // secretName is optional — if empty, anonymous/public access is used.
 func ListImage(imageName string, imageFilter string, secretName string, namespace string, limit int) ([]string, error) {
@@ -74,7 +46,7 @@ func ListImage(imageName string, imageFilter string, secretName string, namespac
 	var filteredTags []string
 	tags, err := remote.List(repo, remote.WithAuthFromKeychain(kc))
 	if err != nil {
-		return nil, handleRegistryError(err, repoName)
+		return nil, HandleRegistryError(err, "listing tags for", repoName)
 	}
 
 	// Handle empty repository case
