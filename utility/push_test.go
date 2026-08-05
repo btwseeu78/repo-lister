@@ -3,6 +3,7 @@ package utility
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -154,5 +155,12 @@ func TestPushImageSourceFile(t *testing.T) {
 				t.Logf("Error (expected): %v", err)
 			}
 		})
+	}
+}
+
+func TestPushImageFailsWhenLocalSourceMissing(t *testing.T) {
+	err := PushImage("local/not-found:dev", "registry.io/team/app:1.0.0", "", "default")
+	if err == nil || !strings.Contains(err.Error(), "local image") {
+		t.Fatalf("expected local image missing error, got %v", err)
 	}
 }

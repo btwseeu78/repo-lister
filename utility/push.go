@@ -3,41 +3,51 @@ package utility
 import (
 	"fmt"
 
+	"github.com/google/go-containerregistry/pkg/v1"
+	"github.com/google/go-containerregistry/pkg/v1/daemon"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
-	"github.com/google/go-containerregistry/pkg/v1/tarball"
 )
 
-// PushImage pushes an image from a local tar file to a registry
-func PushImage(imageRef string, sourcePath string, secretName string, namespace string) error {
+// PushImage pushes an image from the local Docker daemon to a registry.
+func PushImage(sourceImageRef string, destinationImageRef string, secretName string, namespace string) error {
 	// Create keychain
 	kc, err := CreateKeychain(namespace, secretName)
 	if err != nil {
 		return fmt.Errorf("failed to create keychain: %w", err)
 	}
 
-	// Parse image reference
-	ref, err := name.ParseReference(imageRef)
+	// Parse source image reference
+	srcRef, err := name.ParseReference(sourceImageRef)
 	if err != nil {
-		return fmt.Errorf("failed to parse image reference '%s': %w", imageRef, err)
+		return fmt.Errorf("failed to parse source image reference '%s': %w", sourceImageRef, err)
 	}
 
-	fmt.Printf("Loading image from %s...\n", sourcePath)
-
-	// Load image from tar file
-	img, err := tarball.ImageFromPath(sourcePath, nil)
+	// Parse destination image reference
+	dstRef, err := name.ParseReference(destinationImageRef)
 	if err != nil {
-		return fmt.Errorf("failed to load image from tar file: %w", err)
+		return fmt.Errorf("failed to parse destination image reference '%s': %w", destinationImageRef, err)
 	}
 
-	fmt.Printf("Pushing image to %s...\n", imageRef)
+	fmt.Printf("Loading local image %s from Docker daemon...\n", sourceImageRef)
+
+	img, err := loadLocalImage(srcRef)
+	if err != nil {
+		return fmt.Errorf("local image '%s' not found in Docker daemon. Tag the image first, then retry: %w", sourceImageRef, err)
+	}
+
+	fmt.Printf("Pushing image to %s...\n", destinationImageRef)
 
 	// Push image to registry
-	err = remote.Write(ref, img, remote.WithAuthFromKeychain(kc))
+	err = remote.Write(dstRef, img, remote.WithAuthFromKeychain(kc))
 	if err != nil {
-		return HandleRegistryError(err, "pushing image to", imageRef)
+		return HandleRegistryError(err, "pushing image to", destinationImageRef)
 	}
 
-	fmt.Printf("✓ Successfully pushed image to %s\n", imageRef)
+	fmt.Printf("✓ Successfully pushed image to %s\n", destinationImageRef)
 	return nil
+}
+
+func loadLocalImage(src name.Reference) (v1.Image, error) {
+	return daemon.Image(src)
 }
