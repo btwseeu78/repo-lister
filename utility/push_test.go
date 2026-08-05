@@ -1,8 +1,15 @@
 package utility
 
 import (
+	"errors"
 	"strings"
 	"testing"
+
+	"github.com/google/go-containerregistry/pkg/authn"
+	"github.com/google/go-containerregistry/pkg/name"
+	v1 "github.com/google/go-containerregistry/pkg/v1"
+	"github.com/google/go-containerregistry/pkg/v1/empty"
+	"github.com/google/go-containerregistry/pkg/v1/remote"
 )
 
 func TestPushImageFailsWhenSourceReferenceInvalid(t *testing.T) {
@@ -31,5 +38,84 @@ func TestPushImageLocalSourceFailFastBeforeKeychainCreation(t *testing.T) {
 
 	if strings.Contains(err.Error(), "failed to create keychain") {
 		t.Fatalf("expected local-source fail-fast before keychain creation, got %v", err)
+	}
+}
+
+func TestPushImageUsesDefaultKeychainWhenSecretEmpty(t *testing.T) {
+	originalCreateKeychainFn := createKeychainFn
+	originalRemoteWriteFn := remoteWriteFn
+	originalLoadLocalImageFn := loadLocalImageFn
+	t.Cleanup(func() {
+		createKeychainFn = originalCreateKeychainFn
+		remoteWriteFn = originalRemoteWriteFn
+		loadLocalImageFn = originalLoadLocalImageFn
+	})
+
+	createCalled := false
+	writeCalled := false
+
+	createKeychainFn = func(namespace, secretName string) (authn.Keychain, error) {
+		createCalled = true
+		if namespace != "default" {
+			t.Fatalf("expected namespace default, got %q", namespace)
+		}
+		if secretName != "" {
+			t.Fatalf("expected empty secret name for default keychain path, got %q", secretName)
+		}
+		return authn.DefaultKeychain, nil
+	}
+
+	loadLocalImageFn = func(_ name.Reference) (v1.Image, error) {
+		return empty.Image, nil
+	}
+
+	remoteWriteFn = func(_ name.Reference, _ v1.Image, _ ...remote.Option) error {
+		writeCalled = true
+		return nil
+	}
+
+	err := PushImage("local/app:dev", "registry.io/team/app:1.0.0", "", "default")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if !createCalled {
+		t.Fatalf("expected keychain factory to be called")
+	}
+
+	if !writeCalled {
+		t.Fatalf("expected remote write to be called")
+	}
+}
+
+func TestPushImageWrapsRegistryWriteError(t *testing.T) {
+	originalCreateKeychainFn := createKeychainFn
+	originalRemoteWriteFn := remoteWriteFn
+	originalLoadLocalImageFn := loadLocalImageFn
+	t.Cleanup(func() {
+		createKeychainFn = originalCreateKeychainFn
+		remoteWriteFn = originalRemoteWriteFn
+		loadLocalImageFn = originalLoadLocalImageFn
+	})
+
+	createKeychainFn = func(_, _ string) (authn.Keychain, error) {
+		return authn.DefaultKeychain, nil
+	}
+
+	loadLocalImageFn = func(_ name.Reference) (v1.Image, error) {
+		return empty.Image, nil
+	}
+
+	remoteWriteFn = func(_ name.Reference, _ v1.Image, _ ...remote.Option) error {
+		return errors.New("unauthorized: authentication required")
+	}
+
+	err := PushImage("local/app:dev", "registry.io/team/app:1.0.0", "", "default")
+	if err == nil {
+		t.Fatalf("expected error")
+	}
+
+	if !strings.Contains(err.Error(), "authentication failed while pushing image to") {
+		t.Fatalf("expected registry auth error mapping, got %v", err)
 	}
 }

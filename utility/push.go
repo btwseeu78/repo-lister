@@ -9,6 +9,10 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 )
 
+var createKeychainFn = CreateKeychain
+var remoteWriteFn = remote.Write
+var loadLocalImageFn = loadLocalImage
+
 // PushImage pushes an image from the local Docker daemon to a registry.
 func PushImage(sourceImageRef string, destinationImageRef string, secretName string, namespace string) error {
 	// Parse source image reference
@@ -19,7 +23,7 @@ func PushImage(sourceImageRef string, destinationImageRef string, secretName str
 
 	fmt.Printf("Loading local image %s from Docker daemon...\n", sourceImageRef)
 
-	img, err := loadLocalImage(srcRef)
+	img, err := loadLocalImageFn(srcRef)
 	if err != nil {
 		return fmt.Errorf("local image '%s' not found in Docker daemon. Tag the image first, then retry: %w", sourceImageRef, err)
 	}
@@ -31,7 +35,7 @@ func PushImage(sourceImageRef string, destinationImageRef string, secretName str
 	}
 
 	// Create keychain after source image resolution so local-source errors fail first.
-	kc, err := CreateKeychain(namespace, secretName)
+	kc, err := createKeychainFn(namespace, secretName)
 	if err != nil {
 		return fmt.Errorf("failed to create keychain: %w", err)
 	}
@@ -39,7 +43,7 @@ func PushImage(sourceImageRef string, destinationImageRef string, secretName str
 	fmt.Printf("Pushing image to %s...\n", destinationImageRef)
 
 	// Push image to registry
-	err = remote.Write(dstRef, img, remote.WithAuthFromKeychain(kc))
+	err = remoteWriteFn(dstRef, img, remote.WithAuthFromKeychain(kc))
 	if err != nil {
 		return HandleRegistryError(err, "pushing image to", destinationImageRef)
 	}
