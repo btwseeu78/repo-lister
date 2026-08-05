@@ -7,7 +7,7 @@ A CLI tool to manage container images across registries using Kubernetes credent
 - **list** - List image tags from a container registry
 - **copy** - Copy/retag images between registries without local storage
 - **pull** - Pull images from registry to local tar files
-- **push** - Push images from local tar files to registry
+- **push** - Push images from local daemon to a destination registry
 
 All commands use Kubernetes secrets for registry authentication, making it easy to work with private registries in your cluster.
 
@@ -202,36 +202,36 @@ repo-lister pull \
 
 ### 4. Push - Push image from local storage
 
-Push a container image from a local tar file to a registry.
+Push a container image from your local daemon to a destination registry image reference.
 
 ```sh
 repo-lister push \
-  --image <image:tag> \
-  --source <path.tar> \
+  --source-image <source-image:tag> \
+  --destination-image <destination-image:tag> \
   --secret <secret> \
   --namespace <namespace>
 ```
 
 **Flags:**
-- `-i, --image` - Destination image reference (required)
-- `-f, --source` - Source tar file path (required)
-- `-s, --secret` - Kubernetes secret for authentication (required)
+- `--source-image` - Local daemon source image reference (required)
+- `--destination-image` - Destination registry image reference (required)
+- `-s, --secret` - Kubernetes secret name for registry authentication
 - `-n, --namespace` - Namespace where secret is located (default: "default")
 
 **Examples:**
 
 ```sh
-# Push image from tar file
+# Push image from local daemon to destination registry
 repo-lister push \
-  --image linuxarpan/testpush:v2.0.0 \
-  --source /tmp/test-image.tar \
+  --source-image local/app:dev \
+  --destination-image registry.io/team/app:1.0.0 \
   --secret regcred \
   --namespace default
 
 # Push to private registry
 repo-lister push \
-  --image myregistry.io/app:latest \
-  --source ./backup/app-latest.tar \
+  --source-image app:latest \
+  --destination-image myregistry.io/app:latest \
   --secret registry-cred
 ```
 
@@ -267,10 +267,10 @@ repo-lister pull \
   --output ./backup/app-v1.0.0.tar \
   --secret regcred
 
-# Restore: Push image from local tar
+# Restore: Push locally loaded image to registry
 repo-lister push \
-  --image myregistry.io/app:v1.0.0 \
-  --source ./backup/app-v1.0.0.tar \
+  --source-image myregistry.io/app:v1.0.0 \
+  --destination-image myregistry.io/app:v1.0.0 \
   --secret regcred
 ```
 
@@ -287,8 +287,8 @@ repo-lister pull \
 
 # On air-gapped machine: Push to local registry
 repo-lister push \
-  --image local-registry.io/app:latest \
-  --source app-latest.tar \
+  --source-image app:latest \
+  --destination-image local-registry.io/app:latest \
   --secret local-cred
 ```
 
