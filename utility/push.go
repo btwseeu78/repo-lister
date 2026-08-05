@@ -3,6 +3,7 @@ package utility
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
@@ -16,6 +17,14 @@ var loadLocalImageFn = loadLocalImage
 
 // PushImage pushes an image from the local Docker daemon to a registry.
 func PushImage(sourceImageRef string, destinationImageRef string, secretName string, namespace string) error {
+	if strings.TrimSpace(sourceImageRef) == "" {
+		return fmt.Errorf("source image is required")
+	}
+
+	if strings.TrimSpace(destinationImageRef) == "" {
+		return fmt.Errorf("destination image is required")
+	}
+
 	// Parse source image reference
 	srcRef, err := name.ParseReference(sourceImageRef)
 	if err != nil {

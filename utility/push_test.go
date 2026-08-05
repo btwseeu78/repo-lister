@@ -19,6 +19,54 @@ func TestPushImageFailsWhenSourceReferenceInvalid(t *testing.T) {
 	}
 }
 
+func TestPushImageBehaviorMatrix(t *testing.T) {
+	originalCreateKeychainFn := createKeychainFn
+	originalRemoteWriteFn := remoteWriteFn
+	originalLoadLocalImageFn := loadLocalImageFn
+	t.Cleanup(func() {
+		createKeychainFn = originalCreateKeychainFn
+		remoteWriteFn = originalRemoteWriteFn
+		loadLocalImageFn = originalLoadLocalImageFn
+	})
+
+	loadLocalImageFn = func(_ name.Reference) (v1.Image, error) {
+		return empty.Image, nil
+	}
+
+	createKeychainFn = func(_, _ string) (authn.Keychain, error) {
+		return authn.DefaultKeychain, nil
+	}
+
+	remoteWriteFn = func(_ name.Reference, _ v1.Image, _ ...remote.Option) error {
+		return nil
+	}
+
+	cases := []struct {
+		name          string
+		source        string
+		destination   string
+		secret        string
+		wantErrSubstr string
+	}{
+		{name: "missing source", source: "", destination: "registry.io/team/app:1.0.0", secret: "", wantErrSubstr: "source image is required"},
+		{name: "missing destination", source: "local/app:dev", destination: "", secret: "", wantErrSubstr: "destination image is required"},
+		{name: "invalid destination", source: "local/app:dev", destination: ":::bad:::", secret: "", wantErrSubstr: "failed to parse destination image reference"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := PushImage(tc.source, tc.destination, tc.secret, "default")
+			if err == nil {
+				t.Fatalf("expected error")
+			}
+
+			if !strings.Contains(err.Error(), tc.wantErrSubstr) {
+				t.Fatalf("expected error containing %q, got %v", tc.wantErrSubstr, err)
+			}
+		})
+	}
+}
+
 func TestPushImageFailsWhenLocalSourceMissing(t *testing.T) {
 	err := PushImage("local/not-found:dev", "registry.io/team/app:1.0.0", "", "default")
 	if err == nil || !strings.Contains(err.Error(), "local image") {
