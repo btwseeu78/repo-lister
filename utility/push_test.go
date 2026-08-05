@@ -42,7 +42,7 @@ func TestPushImageBehaviorMatrix(t *testing.T) {
 	}{
 		{name: "missing source", source: "", destination: "registry.io/team/app:1.0.0", secret: "", wantErrSubstr: "source image is required", wantLoadCalls: 0, wantKeychainCalls: 0, wantRemoteWriteCalls: 0},
 		{name: "missing destination", source: "local/app:dev", destination: "", secret: "", wantErrSubstr: "destination image is required", wantLoadCalls: 0, wantKeychainCalls: 0, wantRemoteWriteCalls: 0},
-		{name: "invalid destination", source: "local/app:dev", destination: ":::bad:::", secret: "", wantErrSubstr: "failed to parse destination image reference", wantLoadCalls: 1, wantKeychainCalls: 0, wantRemoteWriteCalls: 0},
+		{name: "invalid destination", source: "local/app:dev", destination: ":::bad:::", secret: "", wantErrSubstr: "failed to parse destination image reference", wantLoadCalls: 0, wantKeychainCalls: 0, wantRemoteWriteCalls: 0},
 		{name: "local source missing", source: "local/not-found:dev", destination: "registry.io/team/app:1.0.0", secret: "", loadErr: errors.New("daemon image not found"), wantErrSubstr: "local image", wantLoadCalls: 1, wantKeychainCalls: 0, wantRemoteWriteCalls: 0},
 	}
 

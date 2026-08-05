@@ -200,7 +200,7 @@ repo-lister pull \
   --secret registry-cred
 ```
 
-### 4. Push - Push image from local storage
+### 4. Push - Push image from local daemon
 
 Push a container image from your local daemon to a destination registry image reference.
 

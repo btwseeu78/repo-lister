@@ -31,17 +31,17 @@ func PushImage(sourceImageRef string, destinationImageRef string, secretName str
 		return fmt.Errorf("failed to parse source image reference '%s': %w", sourceImageRef, err)
 	}
 
+	// Parse destination image reference before touching local daemon state.
+	dstRef, err := name.ParseReference(destinationImageRef)
+	if err != nil {
+		return fmt.Errorf("failed to parse destination image reference '%s': %w", destinationImageRef, err)
+	}
+
 	fmt.Printf("Loading local image %s from Docker daemon...\n", sourceImageRef)
 
 	img, err := loadLocalImageFn(srcRef)
 	if err != nil {
 		return fmt.Errorf("local image '%s' not found in Docker daemon. Tag the image first, then retry: %w", sourceImageRef, err)
-	}
-
-	// Parse destination image reference
-	dstRef, err := name.ParseReference(destinationImageRef)
-	if err != nil {
-		return fmt.Errorf("failed to parse destination image reference '%s': %w", destinationImageRef, err)
 	}
 
 	// Create keychain after source image resolution so local-source errors fail first.
