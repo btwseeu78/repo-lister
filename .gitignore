@@ -30,3 +30,6 @@ Formula/
 # Build artifacts
 dist/
 repo-lister
+
+# Local git worktrees
+.worktrees/
