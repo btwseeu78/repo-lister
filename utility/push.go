@@ -3,24 +3,25 @@ package utility
 import (
 	"fmt"
 
-	"github.com/google/go-containerregistry/pkg/v1"
-	"github.com/google/go-containerregistry/pkg/v1/daemon"
 	"github.com/google/go-containerregistry/pkg/name"
+	v1 "github.com/google/go-containerregistry/pkg/v1"
+	"github.com/google/go-containerregistry/pkg/v1/daemon"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 )
 
 // PushImage pushes an image from the local Docker daemon to a registry.
 func PushImage(sourceImageRef string, destinationImageRef string, secretName string, namespace string) error {
-	// Create keychain
-	kc, err := CreateKeychain(namespace, secretName)
-	if err != nil {
-		return fmt.Errorf("failed to create keychain: %w", err)
-	}
-
 	// Parse source image reference
 	srcRef, err := name.ParseReference(sourceImageRef)
 	if err != nil {
 		return fmt.Errorf("failed to parse source image reference '%s': %w", sourceImageRef, err)
+	}
+
+	fmt.Printf("Loading local image %s from Docker daemon...\n", sourceImageRef)
+
+	img, err := loadLocalImage(srcRef)
+	if err != nil {
+		return fmt.Errorf("local image '%s' not found in Docker daemon. Tag the image first, then retry: %w", sourceImageRef, err)
 	}
 
 	// Parse destination image reference
@@ -29,11 +30,10 @@ func PushImage(sourceImageRef string, destinationImageRef string, secretName str
 		return fmt.Errorf("failed to parse destination image reference '%s': %w", destinationImageRef, err)
 	}
 
-	fmt.Printf("Loading local image %s from Docker daemon...\n", sourceImageRef)
-
-	img, err := loadLocalImage(srcRef)
+	// Create keychain after source image resolution so local-source errors fail first.
+	kc, err := CreateKeychain(namespace, secretName)
 	if err != nil {
-		return fmt.Errorf("local image '%s' not found in Docker daemon. Tag the image first, then retry: %w", sourceImageRef, err)
+		return fmt.Errorf("failed to create keychain: %w", err)
 	}
 
 	fmt.Printf("Pushing image to %s...\n", destinationImageRef)
