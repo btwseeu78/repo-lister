@@ -2,6 +2,7 @@ package utility
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
@@ -40,15 +41,22 @@ func PushImage(sourceImageRef string, destinationImageRef string, secretName str
 		return fmt.Errorf("failed to create keychain: %w", err)
 	}
 
-	fmt.Printf("Pushing image to %s...\n", destinationImageRef)
+	reporter := newPushProgressReporter(os.Stdout, isInteractiveTerminal())
+	reporter.Start(100)
+	reporter.Update(20, "preparing image")
+	reporter.Update(40, "resolving auth")
+	reporter.Update(70, "pushing layers")
 
 	// Push image to registry
 	err = remoteWriteFn(dstRef, img, remote.WithAuthFromKeychain(kc))
 	if err != nil {
-		return HandleRegistryError(err, "pushing image to", destinationImageRef)
+		mappedErr := HandleRegistryError(err, "pushing image to", destinationImageRef)
+		reporter.Fail(mappedErr)
+		return mappedErr
 	}
 
-	fmt.Printf("✓ Successfully pushed image to %s\n", destinationImageRef)
+	reporter.Update(100, "finalizing")
+	reporter.Complete(fmt.Sprintf("Successfully pushed image to %s", destinationImageRef))
 	return nil
 }
 
